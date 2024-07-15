@@ -8,4 +8,5 @@ const func = async () => {
     alert(response);
 }
   
-func()
+// func()
+
