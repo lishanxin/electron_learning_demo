@@ -1,7 +1,7 @@
 const { app, BrowserWindow, ipcMain } = require('electron/main')
 const { dialog } = require('electron');
 const fs = require('fs');
-const path = require('node:path')
+const path = require('node:path');
 
 const createWindow = () => {
   const win = new BrowserWindow({
@@ -19,6 +19,7 @@ console.log("error, sdlfjkakdjf")
 
 app.whenReady().then(() => {
   ipcMain.handle('ping', () => 'pong')
+  ipcMain.handle('import', importFile)
   createWindow()
   exportDbFileToDesktop()
   app.on('activate', () => {
@@ -82,4 +83,27 @@ function exportDbFileToDesktop() {
   }).catch(err => {
     console.error('Error while exporting the database file:', err);
   });
+}
+
+// 渲染进程发来的导入文件请求
+const importFile =  async () => {
+  // 显示文件选择对话框
+  const { canceled, filePaths } = await dialog.showOpenDialog({})
+
+  return new Promise((resolve) => {
+    if (!canceled) {
+        const filePath = filePaths[0];
+        // 读取文件内容
+        fs.readFile(filePath, 'utf-8', (err, data) => {
+            if (err) {
+                console.error('文件读取失败:', err);
+                resolve({ error: true, message: '文件读取失败' });
+            }
+            // 发送文件内容到渲染进程
+            resolve({ error: false, content: data });
+        });
+    }else{
+      resolve({ error: true, message: '已取消' });
+    }
+  })
 }
